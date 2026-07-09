@@ -1,0 +1,13 @@
+# Saves e arquivos pesados do mundo
+Saves/
+db/
+logs/
+*.log
+
+# Backups grandes
+backups/*.zip
+backups/*.tar.gz
+
+# Arquivos temporários
+.DS_Store
+*.tmp
