@@ -12,9 +12,9 @@ Esta fase ainda é manual. O objetivo é padronizar mensagens, comandos, restart
 - [x] Padrão de mensagens administrativas
 - [x] Teste de anúncio global
 - [x] Checklist manual de restart
-- [ ] Checklist de evento
+- [x] Checklist de evento
 - [x] Checklist de encerramento seguro
-- [ ] Documentação de comandos úteis
+- [x] Documentação de comandos úteis
 
 ## Padrão de mensagens
 
@@ -66,6 +66,38 @@ Esta fase ainda é manual. O objetivo é padronizar mensagens, comandos, restart
 11. Fazer backup se necessário.
 12. Subir servidor novamente.
 
+## Checklist manual de evento
+
+1. Definir nome do evento.
+2. Definir objetivo do evento.
+3. Definir local.
+4. Definir horário de início.
+5. Definir duração estimada.
+6. Definir se terá PvP.
+7. Definir regras especiais.
+8. Definir recompensa.
+9. Avisar no Discord.
+10. Avisar no jogo com `servermsg`.
+11. Confirmar presença da staff responsável.
+12. Iniciar evento.
+13. Encerrar evento com anúncio global.
+14. Registrar problemas, bugs e feedback.
+
+## Template de evento
+
+```md
+Nome do evento:
+Data:
+Horário:
+Local:
+Duração:
+PvP:
+Regras:
+Recompensa:
+Staff responsável:
+Risco técnico:
+Observações:
+
 ## Comandos já testados
 
 ### Salvar mundo
@@ -107,6 +139,72 @@ A mensagem aparece no chat global para jogadores conectados.
 ## Comandos a testar
 
 Nenhum comando pendente nesta versão.
+
+## Comandos úteis da staff
+
+### Comandos validados
+
+#### Enviar anúncio global
+
+```text
+servermsg "[STAFF] mensagem"
+```
+
+Uso:
+
+- avisos administrativos;
+- alertas de restart;
+- início e fim de evento;
+- mensagens de teste.
+
+#### Salvar mundo
+
+```text
+save
+```
+
+Uso:
+
+- antes de restart;
+- antes de encerramento;
+- antes de manutenção;
+- antes de backup manual.
+
+#### Encerrar servidor
+
+```text
+quit
+```
+
+Uso:
+
+- depois de `save`;
+- em encerramento planejado;
+- em restart manual.
+
+### Comandos a validar futuramente
+
+Estes comandos ainda precisam ser testados na B-42 local antes de entrarem no procedimento oficial:
+
+```text
+help
+players
+kickuser
+banuser
+unbanuser
+grantadmin
+removeadmin
+additem
+addvehicle
+teleport
+godmode
+invisible
+noclip
+```
+
+Observação:
+
+Nenhum comando de punição, spawn de item, veículo ou teleporte deve ser usado em produção sem antes ser testado e documentado.
 
 ## Decisões técnicas
 
