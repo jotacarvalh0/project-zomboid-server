@@ -121,7 +121,7 @@ function NF_UI_ToastPanel:new()
 end
 
 function NF_UI_ToastPanel:addToast(title, message, kind, durationMs)
-    table.insert(self.toasts, {
+    table.insert(self.toasts, 1, {
         title = title or "SISTEMA",
         message = message or "",
         kind = kind or "SISTEMA",
@@ -150,18 +150,18 @@ function NF_UI_ToastPanel:prerender()
         self:setWidth(1)
         self:setHeight(1)
         self:setX(getCore():getScreenWidth() - 25)
-        self:setY(24)
+        self:setY(28)
         return
     end
 
-    local boxWidth = 360
-    local boxHeight = 70
-    local gap = 8
+    local boxWidth = 390
+    local boxHeight = 82
+    local gap = 10
 
-    self:setWidth(boxWidth + 6)
+    self:setWidth(boxWidth + 8)
     self:setHeight((boxHeight + gap) * visibleCount)
     self:setX(getCore():getScreenWidth() - boxWidth - 24)
-    self:setY(24)
+    self:setY(28)
 
     ISPanel.prerender(self)
 
@@ -171,24 +171,43 @@ function NF_UI_ToastPanel:prerender()
     for i = 1, visibleCount do
         local toast = self.toasts[i]
         local age = current - toast.created
-        local alpha = 0.95
+        local alpha = 0.96
 
         if age > toast.duration - 1000 then
-            alpha = clamp((toast.duration - age) / 1000, 0, 0.95)
+            alpha = clamp((toast.duration - age) / 1000, 0, 0.96)
         end
 
         local theme = getKindTheme(toast.kind)
 
-        self:drawRect(4, y + 4, boxWidth, boxHeight, 0.30 * alpha, BASE_COLORS.shadow.r, BASE_COLORS.shadow.g, BASE_COLORS.shadow.b)
-        self:drawRect(0, y, boxWidth, boxHeight, 0.90 * alpha, BASE_COLORS.card.r, BASE_COLORS.card.g, BASE_COLORS.card.b)
-        self:drawRect(0, y, boxWidth, boxHeight, 0.18 * alpha, theme.support.r, theme.support.g, theme.support.b)
+        -- sombra externa
+        self:drawRect(5, y + 5, boxWidth, boxHeight, 0.34 * alpha, BASE_COLORS.shadow.r, BASE_COLORS.shadow.g, BASE_COLORS.shadow.b)
 
-        self:drawRect(0, y, 5, boxHeight, 0.95 * alpha, theme.main.r, theme.main.g, theme.main.b)
-        self:drawRectBorder(0, y, boxWidth, boxHeight, 0.60 * alpha, BASE_COLORS.border.r, BASE_COLORS.border.g, BASE_COLORS.border.b)
-        self:drawRectBorder(1, y + 1, boxWidth - 2, boxHeight - 2, 0.32 * alpha, theme.secondary.r, theme.secondary.g, theme.secondary.b)
+        -- card base
+        self:drawRect(0, y, boxWidth, boxHeight, 0.94 * alpha, BASE_COLORS.card.r, BASE_COLORS.card.g, BASE_COLORS.card.b)
 
-        self:drawText("[" .. toast.kind .. "] " .. toast.title, 14, y + 9, theme.main.r, theme.main.g, theme.main.b, alpha, UIFont.Small)
-        self:drawText(toast.message, 14, y + 36, BASE_COLORS.muted.r, BASE_COLORS.muted.g, BASE_COLORS.muted.b, 0.92 * alpha, UIFont.Small)
+        -- camada de identidade do tipo do alerta
+        self:drawRect(0, y, boxWidth, boxHeight, 0.14 * alpha, theme.support.r, theme.support.g, theme.support.b)
+
+        -- barra lateral
+        self:drawRect(0, y, 5, boxHeight, 0.98 * alpha, theme.main.r, theme.main.g, theme.main.b)
+
+        -- linha superior sutil
+        self:drawRect(5, y, boxWidth - 5, 1, 0.45 * alpha, theme.secondary.r, theme.secondary.g, theme.secondary.b)
+
+        -- bordas
+        self:drawRectBorder(0, y, boxWidth, boxHeight, 0.58 * alpha, BASE_COLORS.border.r, BASE_COLORS.border.g, BASE_COLORS.border.b)
+        self:drawRectBorder(1, y + 1, boxWidth - 2, boxHeight - 2, 0.20 * alpha, theme.secondary.r, theme.secondary.g, theme.secondary.b)
+
+        -- tag da categoria
+        local tagWidth = 82
+        local tagHeight = 20
+        self:drawRect(14, y + 11, tagWidth, tagHeight, 0.24 * alpha, theme.main.r, theme.main.g, theme.main.b)
+        self:drawRectBorder(14, y + 11, tagWidth, tagHeight, 0.46 * alpha, theme.main.r, theme.main.g, theme.main.b)
+        self:drawText(toast.kind, 24, y + 14, theme.main.r, theme.main.g, theme.main.b, alpha, UIFont.Small)
+
+        -- título e mensagem
+        self:drawText(toast.title, 108, y + 12, BASE_COLORS.text.r, BASE_COLORS.text.g, BASE_COLORS.text.b, alpha, UIFont.Small)
+        self:drawText(toast.message, 14, y + 46, BASE_COLORS.muted.r, BASE_COLORS.muted.g, BASE_COLORS.muted.b, 0.92 * alpha, UIFont.Small)
 
         y = y + boxHeight + gap
     end
