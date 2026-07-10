@@ -11,3 +11,5 @@ backups/*.tar.gz
 # Arquivos temporários
 .DS_Store
 *.tmp
+backups/**/*.tar.gz
+backups/**/*.zip
