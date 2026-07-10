@@ -3,6 +3,7 @@ require "ISUI/ISPanel"
 NF_UI = NF_UI or {}
 NF_UI.logoPanel = nil
 NF_UI.toastPanel = nil
+NF_UI.scheduledToasts = {}
 
 local function nowMs()
     if getTimestampMs then
@@ -181,9 +182,40 @@ function NF_UI.showToast(title, message, kind, durationMs)
     end
 end
 
+function NF_UI.scheduleToast(delayMs, title, message, kind, durationMs)
+    table.insert(NF_UI.scheduledToasts, {
+        due = nowMs() + delayMs,
+        title = title,
+        message = message,
+        kind = kind,
+        duration = durationMs
+    })
+end
+
+function NF_UI.processScheduledToasts()
+    if not NF_UI.scheduledToasts then
+        return
+    end
+
+    local current = nowMs()
+
+    for i = #NF_UI.scheduledToasts, 1, -1 do
+        local toast = NF_UI.scheduledToasts[i]
+
+        if current >= toast.due then
+            NF_UI.showToast(toast.title, toast.message, toast.kind, toast.duration)
+            table.remove(NF_UI.scheduledToasts, i)
+        end
+    end
+end
+
+
 local function onCreatePlayer()
     NF_UI.ensure()
-    NF_UI.showToast("Interface carregada", "Nova Fronteira UI Core ativo.", "SISTEMA", 8000)
+
+    NF_UI.scheduleToast(6000, "Interface carregada", "Nova Fronteira UI Core ativo.", "SISTEMA", 14000)
+    NF_UI.scheduleToast(10000, "Aviso da staff", "Este e um teste de alerta visual.", "STAFF", 16000)
+    NF_UI.scheduleToast(15000, "Evento beta", "Sistema de popups funcionando no cliente.", "EVENTO", 16000)
 end
 
 local function onServerCommand(module, command, args)
@@ -203,4 +235,5 @@ local function onServerCommand(module, command, args)
 end
 
 Events.OnCreatePlayer.Add(onCreatePlayer)
+Events.OnTick.Add(NF_UI.processScheduledToasts)
 Events.OnServerCommand.Add(onServerCommand)
