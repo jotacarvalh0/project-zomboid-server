@@ -4,6 +4,40 @@ NF_UI = NF_UI or {}
 NF_UI.logoPanel = nil
 NF_UI.toastPanel = nil
 NF_UI.scheduledToasts = {}
+NF_UI.logoTexture = nil
+
+local BASE_COLORS = {
+    background = { r = 0.043, g = 0.055, b = 0.071 }, -- #0B0E12
+    card = { r = 0.063, g = 0.082, b = 0.106 },       -- #10151B
+    hover = { r = 0.082, g = 0.110, b = 0.141 },      -- #151C24
+    border = { r = 0.122, g = 0.165, b = 0.212 },     -- #1F2A36
+    text = { r = 0.906, g = 0.929, b = 0.961 },       -- #E7EDF5
+    muted = { r = 0.718, g = 0.761, b = 0.812 },      -- #B7C2CF
+    shadow = { r = 0.000, g = 0.000, b = 0.000 }
+}
+
+local ALERT_THEMES = {
+    SISTEMA = {
+        main = { r = 0.435, g = 0.659, b = 1.000 },      -- #6FA8FF
+        secondary = { r = 0.239, g = 0.431, b = 0.659 }, -- #3D6EA8
+        support = { r = 0.059, g = 0.126, b = 0.208 }    -- #0F2035
+    },
+    CONEXAO = {
+        main = { r = 0.435, g = 0.659, b = 1.000 },
+        secondary = { r = 0.239, g = 0.431, b = 0.659 },
+        support = { r = 0.059, g = 0.126, b = 0.208 }
+    },
+    EVENTO = {
+        main = { r = 0.180, g = 0.718, b = 1.000 },      -- #2EB7FF
+        secondary = { r = 0.078, g = 0.475, b = 0.722 }, -- #1479B8
+        support = { r = 0.043, g = 0.129, b = 0.188 }    -- #0B2130
+    },
+    STAFF = {
+        main = { r = 0.878, g = 0.722, b = 0.290 },      -- #E0B84A
+        secondary = { r = 0.635, g = 0.478, b = 0.090 }, -- #A27A17
+        support = { r = 0.169, g = 0.141, b = 0.063 }    -- #2B2410
+    }
+}
 
 local function nowMs()
     if getTimestampMs then
@@ -19,33 +53,17 @@ local function clamp(value, min, max)
     return value
 end
 
-local function getKindColor(kind)
-    if kind == "STAFF" then
-        return 1.0, 0.85, 0.35
-    end
-
-    if kind == "EVENTO" then
-        return 0.45, 0.8, 1.0
-    end
-
-    if kind == "LORE" then
-        return 0.75, 0.55, 1.0
-    end
-
-    if kind == "ALERTA" then
-        return 1.0, 0.35, 0.25
-    end
-
-    return 0.8, 0.9, 1.0
+local function getKindTheme(kind)
+    return ALERT_THEMES[kind] or ALERT_THEMES.SISTEMA
 end
 
 NF_UI_LogoPanel = ISPanel:derive("NF_UI_LogoPanel")
 
 function NF_UI_LogoPanel:new()
-    local width = 420
-    local height = 48
+    local width = 150
+    local height = 116
     local x = (getCore():getScreenWidth() - width) / 2
-    local y = 8
+    local y = 6
 
     local o = ISPanel:new(x, y, width, height)
     setmetatable(o, self)
@@ -61,12 +79,24 @@ end
 
 function NF_UI_LogoPanel:prerender()
     self:setX((getCore():getScreenWidth() - self:getWidth()) / 2)
-    self:setY(8)
+    self:setY(6)
 
     ISPanel.prerender(self)
 
-    self:drawTextCentre("NOVA FRONTEIRA", self:getWidth() / 2, 4, 1.0, 0.85, 0.35, 0.70, UIFont.Medium)
-    self:drawTextCentre("B-42 STAGING", self:getWidth() / 2, 27, 0.8, 0.9, 1.0, 0.35, UIFont.Small)
+    if not NF_UI.logoTexture then
+        NF_UI.logoTexture = getTexture("media/textures/NF_Logo.png")
+    end
+
+    local logoSize = 96
+    local logoX = (self:getWidth() - logoSize) / 2
+
+    if NF_UI.logoTexture then
+        self:drawTextureScaled(NF_UI.logoTexture, logoX, 0, logoSize, logoSize, 0.82)
+    else
+        self:drawTextCentre("NOVA FRONTEIRA", self:getWidth() / 2, 10, 0.878, 0.722, 0.290, 0.85, UIFont.Medium)
+    end
+
+    self:drawTextCentre("B-42 STAGING", self:getWidth() / 2, 94, 0.718, 0.761, 0.812, 0.38, UIFont.Small)
 end
 
 NF_UI_ToastPanel = ISPanel:derive("NF_UI_ToastPanel")
@@ -125,10 +155,10 @@ function NF_UI_ToastPanel:prerender()
     end
 
     local boxWidth = 360
-    local boxHeight = 64
+    local boxHeight = 70
     local gap = 8
 
-    self:setWidth(boxWidth)
+    self:setWidth(boxWidth + 6)
     self:setHeight((boxHeight + gap) * visibleCount)
     self:setX(getCore():getScreenWidth() - boxWidth - 24)
     self:setY(24)
@@ -141,20 +171,24 @@ function NF_UI_ToastPanel:prerender()
     for i = 1, visibleCount do
         local toast = self.toasts[i]
         local age = current - toast.created
-        local alpha = 0.92
+        local alpha = 0.95
 
         if age > toast.duration - 1000 then
-            alpha = clamp((toast.duration - age) / 1000, 0, 0.92)
+            alpha = clamp((toast.duration - age) / 1000, 0, 0.95)
         end
 
-        local r, g, b = getKindColor(toast.kind)
+        local theme = getKindTheme(toast.kind)
 
-        self:drawRect(0, y, boxWidth, boxHeight, 0.72 * alpha, 0.03, 0.03, 0.03)
-        self:drawRect(0, y, 5, boxHeight, 0.95 * alpha, r, g, b)
-        self:drawRectBorder(0, y, boxWidth, boxHeight, 0.60 * alpha, r, g, b)
+        self:drawRect(4, y + 4, boxWidth, boxHeight, 0.30 * alpha, BASE_COLORS.shadow.r, BASE_COLORS.shadow.g, BASE_COLORS.shadow.b)
+        self:drawRect(0, y, boxWidth, boxHeight, 0.90 * alpha, BASE_COLORS.card.r, BASE_COLORS.card.g, BASE_COLORS.card.b)
+        self:drawRect(0, y, boxWidth, boxHeight, 0.18 * alpha, theme.support.r, theme.support.g, theme.support.b)
 
-        self:drawText("[" .. toast.kind .. "] " .. toast.title, 14, y + 8, r, g, b, alpha, UIFont.Small)
-        self:drawText(toast.message, 14, y + 32, 1.0, 1.0, 1.0, 0.90 * alpha, UIFont.Small)
+        self:drawRect(0, y, 5, boxHeight, 0.95 * alpha, theme.main.r, theme.main.g, theme.main.b)
+        self:drawRectBorder(0, y, boxWidth, boxHeight, 0.60 * alpha, BASE_COLORS.border.r, BASE_COLORS.border.g, BASE_COLORS.border.b)
+        self:drawRectBorder(1, y + 1, boxWidth - 2, boxHeight - 2, 0.32 * alpha, theme.secondary.r, theme.secondary.g, theme.secondary.b)
+
+        self:drawText("[" .. toast.kind .. "] " .. toast.title, 14, y + 9, theme.main.r, theme.main.g, theme.main.b, alpha, UIFont.Small)
+        self:drawText(toast.message, 14, y + 36, BASE_COLORS.muted.r, BASE_COLORS.muted.g, BASE_COLORS.muted.b, 0.92 * alpha, UIFont.Small)
 
         y = y + boxHeight + gap
     end
@@ -208,7 +242,6 @@ function NF_UI.processScheduledToasts()
         end
     end
 end
-
 
 local function onCreatePlayer()
     NF_UI.ensure()
