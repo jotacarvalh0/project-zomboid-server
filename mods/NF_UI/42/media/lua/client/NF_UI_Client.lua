@@ -265,9 +265,7 @@ end
 local function onCreatePlayer()
     NF_UI.ensure()
 
-    NF_UI.scheduleToast(6000, "Interface carregada", "Nova Fronteira UI Core ativo.", "SISTEMA", 14000)
-    NF_UI.scheduleToast(10000, "Aviso da staff", "Este e um teste de alerta visual.", "STAFF", 16000)
-    NF_UI.scheduleToast(15000, "Evento beta", "Sistema de popups funcionando no cliente.", "EVENTO", 16000)
+    NF_UI.scheduleToast(6000, "Conexao estabelecida", "Bem-vindo a Nova Fronteira.", "CONEXAO", 12000)
 end
 
 local function onServerCommand(module, command, args)
