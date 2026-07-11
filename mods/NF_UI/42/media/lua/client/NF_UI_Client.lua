@@ -19,6 +19,10 @@ local BASE_COLORS = {
     shadow = { r = 0.000, g = 0.000, b = 0.000 }
 }
 
+local LOCAL_STAFF_USERS = {
+    ["admin"] = true
+}
+
 local ALERT_THEMES = {
     SISTEMA = {
         main = { r = 0.435, g = 0.659, b = 1.000 },      -- #6FA8FF
@@ -352,13 +356,17 @@ function NF_UI.isLocalStaff()
         player = getPlayer()
     end
 
-    if not player or not player.getAccessLevel then
+    if not player then
         return false
     end
 
-    local access = tostring(player:getAccessLevel() or ""):lower()
+    local username = ""
 
-    return access ~= "" and access ~= "none" and access ~= "player"
+    if player.getUsername then
+        username = tostring(player:getUsername() or "")
+    end
+
+    return LOCAL_STAFF_USERS[username] or LOCAL_STAFF_USERS[username:lower()] or false
 end
 
 function NF_UI.toggleAdminPanel()

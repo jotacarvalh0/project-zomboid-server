@@ -7,6 +7,19 @@ local VALID_KINDS = {
     STAFF = true
 }
 
+-- MVP de segurança:
+-- enquanto o mod estiver público na Workshop, só usuários explicitamente permitidos podem enviar alertas.
+local STRICT_STAFF_ALLOWLIST = true
+
+local STAFF_USERS = {
+    ["admin"] = true
+}
+
+local STAFF_STEAM_IDS = {
+    -- Exemplo futuro:
+    -- ["76561198000000000"] = true
+}
+
 local function safeText(value, fallback, maxLength)
     value = tostring(value or fallback or "")
 
@@ -43,20 +56,58 @@ local function normalizeDuration(durationMs)
     return durationMs
 end
 
+local function getPlayerUsername(player)
+    if player and player.getUsername then
+        return tostring(player:getUsername() or "")
+    end
+
+    return ""
+end
+
+local function getPlayerSteamId(player)
+    if player and player.getSteamID then
+        return tostring(player:getSteamID() or "")
+    end
+
+    if player and player.getSteamID64 then
+        return tostring(player:getSteamID64() or "")
+    end
+
+    return ""
+end
+
+local function getPlayerAccessLevel(player)
+    if player and player.getAccessLevel then
+        return tostring(player:getAccessLevel() or ""):lower()
+    end
+
+    return ""
+end
+
 local function isStaff(player)
     if not player then
         return false
     end
 
-    local access = ""
+    local username = getPlayerUsername(player)
+    local usernameLower = username:lower()
+    local steamId = getPlayerSteamId(player)
 
-    if player.getAccessLevel then
-        access = tostring(player:getAccessLevel() or "")
+    if STAFF_USERS[username] or STAFF_USERS[usernameLower] then
+        return true
     end
 
-    access = access:lower()
+    if steamId ~= "" and STAFF_STEAM_IDS[steamId] then
+        return true
+    end
 
-    return access ~= "" and access ~= "none" and access ~= "player"
+    if STRICT_STAFF_ALLOWLIST then
+        return false
+    end
+
+    local access = getPlayerAccessLevel(player)
+
+    return access == "admin" or access == "moderator" or access == "overseer" or access == "gm"
 end
 
 function NF_UI_Server.sendToast(player, title, message, kind, durationMs)
@@ -96,7 +147,20 @@ local function onClientCommand(module, command, player, args)
     end
 
     if not isStaff(player) then
-        print("[NF_UI] BroadcastToast negado: jogador sem permissao.")
+        local username = getPlayerUsername(player)
+        local access = getPlayerAccessLevel(player)
+        local steamId = getPlayerSteamId(player)
+
+        print("[NF_UI] BroadcastToast negado: jogador sem permissao. user=" .. username .. " access=" .. access .. " steamId=" .. steamId)
+
+        NF_UI_Server.sendToast(
+            player,
+            "Acesso negado",
+            "Voce nao tem permissao para enviar alertas.",
+            "SISTEMA",
+            7000
+        )
+
         return
     end
 
