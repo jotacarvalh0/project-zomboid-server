@@ -219,3 +219,46 @@ Pode:
 ## Status
 
 Planejado para Discord MVP.
+
+---
+
+## Implementação Validada
+
+Data: 2026-07-11
+
+Status: Ticket Core v0.1 configurado e validado no Discord.
+
+Validado:
+- Canal `🎫・abrir-ticket` criado.
+- Categoria `📁・tickets-abertos` configurada.
+- Canal `📜・logs-tickets` configurado.
+- Bot Ticket Tool instalado.
+- Painel de abertura enviado.
+- Botão `Abrir ticket` funcionando.
+- Ticket privado criado corretamente.
+- Permissões corrigidas na categoria de tickets.
+- Mensagem inicial do ticket traduzida para PT-BR.
+- Botão `Fechar ticket` traduzido.
+- Confirmação de fechamento traduzida.
+- Logs de abertura/fechamento funcionando.
+
+Mensagem inicial usada:
+
+> 🎫 Ticket aberto.
+>
+> A staff responderá assim que possível.
+>
+> Envie:
+> - Tipo: Suporte / Denúncia / Bug / VIP
+> - Nick no jogo:
+> - Descrição:
+> - Print/vídeo, se tiver:
+>
+> Use o botão abaixo para fechar.
+
+Observações:
+- O Ticket Tool Free limita parte da customização visual do painel.
+- O rodapé padrão do Ticket Tool permanece por enquanto.
+- O MVP usa um botão único de abertura de ticket.
+- A separação por tipo será feita pelo campo "Tipo" dentro do ticket.
+- Futuramente, se necessário, trocar para formulário/dropdown ou bot próprio.
