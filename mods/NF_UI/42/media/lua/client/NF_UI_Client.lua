@@ -341,8 +341,33 @@ function NF_UI_AdminPanel:prerender()
     self:drawText("Mensagem", 18, 140, BASE_COLORS.muted.r, BASE_COLORS.muted.g, BASE_COLORS.muted.b, 0.9, UIFont.Small)
 end
 
+function NF_UI.isLocalStaff()
+    local player = nil
+
+    if getSpecificPlayer then
+        player = getSpecificPlayer(0)
+    end
+
+    if not player and getPlayer then
+        player = getPlayer()
+    end
+
+    if not player or not player.getAccessLevel then
+        return false
+    end
+
+    local access = tostring(player:getAccessLevel() or ""):lower()
+
+    return access ~= "" and access ~= "none" and access ~= "player"
+end
+
 function NF_UI.toggleAdminPanel()
     NF_UI.ensure()
+
+    if not NF_UI.isLocalStaff() then
+        NF_UI.showToast("Acesso negado", "Este painel e exclusivo da staff.", "SISTEMA", 7000)
+        return
+    end
 
     if NF_UI.adminPanel then
         NF_UI.adminPanel:removeFromUIManager()
