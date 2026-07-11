@@ -235,6 +235,21 @@ function NF_UI.showToast(title, message, kind, durationMs)
     end
 end
 
+function NF_UI.sendAdminAlert(kind, title, message, durationMs)
+    if not sendClientCommand then
+        NF_UI.showToast("Erro", "sendClientCommand indisponivel no cliente.", "SISTEMA", 8000)
+        return
+    end
+
+    sendClientCommand("NF_UI", "BroadcastToast", {
+        kind = kind or "STAFF",
+        title = title or "Aviso da staff",
+        message = message or "",
+        duration = durationMs or 12000
+    })
+end
+
+
 function NF_UI.scheduleToast(delayMs, title, message, kind, durationMs)
     table.insert(NF_UI.scheduledToasts, {
         due = nowMs() + delayMs,
@@ -284,6 +299,22 @@ local function onServerCommand(module, command, args)
     end
 end
 
+local function onKeyPressed(key)
+    if not Keyboard then
+        return
+    end
+
+    if key == Keyboard.KEY_F9 then
+        NF_UI.sendAdminAlert(
+            "STAFF",
+            "Aviso da staff",
+            "Teste de alerta enviado pelo admin.",
+            12000
+        )
+    end
+end
+
 Events.OnCreatePlayer.Add(onCreatePlayer)
 Events.OnTick.Add(NF_UI.processScheduledToasts)
+Events.OnKeyPressed.Add(onKeyPressed)
 Events.OnServerCommand.Add(onServerCommand)
