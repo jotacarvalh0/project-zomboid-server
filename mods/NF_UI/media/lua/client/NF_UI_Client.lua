@@ -1,10 +1,13 @@
 require "ISUI/ISPanel"
+require "ISUI/ISButton"
+require "ISUI/ISTextEntryBox"
 
 NF_UI = NF_UI or {}
 NF_UI.logoPanel = nil
 NF_UI.toastPanel = nil
 NF_UI.scheduledToasts = {}
 NF_UI.logoTexture = nil
+NF_UI.adminPanel = nil
 
 local BASE_COLORS = {
     background = { r = 0.043, g = 0.055, b = 0.071 }, -- #0B0E12
@@ -213,6 +216,150 @@ function NF_UI_ToastPanel:prerender()
     end
 end
 
+
+NF_UI_AdminPanel = ISPanel:derive("NF_UI_AdminPanel")
+
+function NF_UI_AdminPanel:new()
+    local width = 430
+    local height = 240
+    local x = (getCore():getScreenWidth() - width) / 2
+    local y = (getCore():getScreenHeight() - height) / 2
+
+    local o = ISPanel:new(x, y, width, height)
+    setmetatable(o, self)
+    self.__index = self
+
+    o.background = false
+    o.backgroundColor = { r = 0, g = 0, b = 0, a = 0 }
+    o.borderColor = { r = 0, g = 0, b = 0, a = 0 }
+    o.moveWithMouse = true
+    o.kind = "STAFF"
+
+    return o
+end
+
+function NF_UI_AdminPanel:createChildren()
+    ISPanel.createChildren(self)
+
+    self.staffButton = ISButton:new(18, 52, 90, 26, "STAFF", self, NF_UI_AdminPanel.onKindStaff)
+    self.staffButton:initialise()
+    self:addChild(self.staffButton)
+
+    self.eventButton = ISButton:new(116, 52, 90, 26, "EVENTO", self, NF_UI_AdminPanel.onKindEvent)
+    self.eventButton:initialise()
+    self:addChild(self.eventButton)
+
+    self.systemButton = ISButton:new(214, 52, 90, 26, "SISTEMA", self, NF_UI_AdminPanel.onKindSystem)
+    self.systemButton:initialise()
+    self:addChild(self.systemButton)
+
+    self.closeButton = ISButton:new(374, 14, 38, 24, "X", self, NF_UI_AdminPanel.onClose)
+    self.closeButton:initialise()
+    self:addChild(self.closeButton)
+
+    self.titleEntry = ISTextEntryBox:new("Aviso da staff", 18, 106, 394, 26)
+    self.titleEntry:initialise()
+    self.titleEntry:instantiate()
+    self:addChild(self.titleEntry)
+
+    self.messageEntry = ISTextEntryBox:new("Servidor reinicia em breve.", 18, 158, 394, 26)
+    self.messageEntry:initialise()
+    self.messageEntry:instantiate()
+    self:addChild(self.messageEntry)
+
+    self.sendButton = ISButton:new(18, 200, 190, 28, "Enviar alerta", self, NF_UI_AdminPanel.onSend)
+    self.sendButton:initialise()
+    self:addChild(self.sendButton)
+end
+
+function NF_UI_AdminPanel:setKind(kind)
+    self.kind = kind or "STAFF"
+
+    if self.kind == "STAFF" then
+        self.titleEntry:setText("Aviso da staff")
+        self.messageEntry:setText("Servidor reinicia em breve.")
+    elseif self.kind == "EVENTO" then
+        self.titleEntry:setText("Evento iniciado")
+        self.messageEntry:setText("Um evento foi iniciado no servidor.")
+    else
+        self.titleEntry:setText("Aviso do sistema")
+        self.messageEntry:setText("Mensagem do sistema.")
+    end
+end
+
+function NF_UI_AdminPanel:onKindStaff()
+    self:setKind("STAFF")
+end
+
+function NF_UI_AdminPanel:onKindEvent()
+    self:setKind("EVENTO")
+end
+
+function NF_UI_AdminPanel:onKindSystem()
+    self:setKind("SISTEMA")
+end
+
+function NF_UI_AdminPanel:onClose()
+    if NF_UI.adminPanel then
+        NF_UI.adminPanel:removeFromUIManager()
+        NF_UI.adminPanel = nil
+    end
+end
+
+function NF_UI_AdminPanel:onSend()
+    local title = self.titleEntry and self.titleEntry:getText() or ""
+    local message = self.messageEntry and self.messageEntry:getText() or ""
+
+    if title == "" then
+        title = "Aviso"
+    end
+
+    if message == "" then
+        message = "Mensagem da staff."
+    end
+
+    NF_UI.sendAdminAlert(self.kind, title, message, 14000)
+end
+
+function NF_UI_AdminPanel:prerender()
+    self:setX((getCore():getScreenWidth() - self:getWidth()) / 2)
+    self:setY((getCore():getScreenHeight() - self:getHeight()) / 2)
+
+    ISPanel.prerender(self)
+
+    self:drawRect(4, 4, self:getWidth(), self:getHeight(), 0.42, 0, 0, 0)
+    self:drawRect(0, 0, self:getWidth(), self:getHeight(), 0.96, BASE_COLORS.card.r, BASE_COLORS.card.g, BASE_COLORS.card.b)
+    self:drawRectBorder(0, 0, self:getWidth(), self:getHeight(), 0.72, BASE_COLORS.border.r, BASE_COLORS.border.g, BASE_COLORS.border.b)
+
+    local theme = getKindTheme(self.kind)
+
+    self:drawRect(0, 0, 5, self:getHeight(), 0.96, theme.main.r, theme.main.g, theme.main.b)
+    self:drawText("Nova Fronteira Staff", 18, 16, BASE_COLORS.text.r, BASE_COLORS.text.g, BASE_COLORS.text.b, 1, UIFont.Medium)
+    self:drawText("Tipo selecionado: " .. self.kind, 18, 34, theme.main.r, theme.main.g, theme.main.b, 0.95, UIFont.Small)
+
+    self:drawText("Titulo", 18, 88, BASE_COLORS.muted.r, BASE_COLORS.muted.g, BASE_COLORS.muted.b, 0.9, UIFont.Small)
+    self:drawText("Mensagem", 18, 140, BASE_COLORS.muted.r, BASE_COLORS.muted.g, BASE_COLORS.muted.b, 0.9, UIFont.Small)
+end
+
+function NF_UI.toggleAdminPanel()
+    NF_UI.ensure()
+
+    if NF_UI.adminPanel then
+        NF_UI.adminPanel:removeFromUIManager()
+        NF_UI.adminPanel = nil
+        return
+    end
+
+    NF_UI.adminPanel = NF_UI_AdminPanel:new()
+    NF_UI.adminPanel:initialise()
+    NF_UI.adminPanel:addToUIManager()
+
+    if NF_UI.adminPanel.bringToTop then
+        NF_UI.adminPanel:bringToTop()
+    end
+end
+
+
 function NF_UI.ensure()
     if not NF_UI.logoPanel then
         NF_UI.logoPanel = NF_UI_LogoPanel:new()
@@ -305,12 +452,7 @@ local function onKeyPressed(key)
     end
 
     if key == Keyboard.KEY_F9 then
-        NF_UI.sendAdminAlert(
-            "STAFF",
-            "Aviso da staff",
-            "Teste de alerta enviado pelo admin.",
-            12000
-        )
+        NF_UI.toggleAdminPanel()
     end
 end
 
