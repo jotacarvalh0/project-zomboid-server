@@ -457,6 +457,108 @@ function NF_UI.processScheduledToasts()
     end
 end
 
+
+local SANTA_ESPERANCA_ZONES = {
+    {
+        name = "Santa Esperança - Oeste",
+        x1 = 7931,
+        y1 = 11387,
+        x2 = 8161,
+        y2 = 11779
+    },
+    {
+        name = "Santa Esperança - Leste",
+        x1 = 8161,
+        y1 = 11537,
+        x2 = 8437,
+        y2 = 11779
+    }
+}
+
+NF_UI.zoneState = NF_UI.zoneState or {
+    inSantaEsperanca = nil,
+    lastCheck = 0
+}
+
+local function isInsideRect(x, y, zone)
+    return x >= zone.x1 and x <= zone.x2 and y >= zone.y1 and y <= zone.y2
+end
+
+local function isInsideSantaEsperanca(x, y)
+    for _, zone in ipairs(SANTA_ESPERANCA_ZONES) do
+        if isInsideRect(x, y, zone) then
+            return true
+        end
+    end
+
+    return false
+end
+
+function NF_UI.processSantaEsperancaZone()
+    local current = nowMs()
+
+    if NF_UI.zoneState and current - NF_UI.zoneState.lastCheck < 1000 then
+        return
+    end
+
+    NF_UI.zoneState.lastCheck = current
+
+    local player = nil
+
+    if getSpecificPlayer then
+        player = getSpecificPlayer(0)
+    end
+
+    if not player and getPlayer then
+        player = getPlayer()
+    end
+
+    if not player then
+        return
+    end
+
+    local x = math.floor(player:getX())
+    local y = math.floor(player:getY())
+    local inside = isInsideSantaEsperanca(x, y)
+
+    if NF_UI.zoneState.inSantaEsperanca == nil then
+        NF_UI.zoneState.inSantaEsperanca = inside
+
+        if inside then
+            NF_UI.showToast(
+                "Santa Esperança",
+                "Área civil protegida. PvP bloqueado.",
+                "SISTEMA",
+                9000
+            )
+        end
+
+        return
+    end
+
+    if inside == NF_UI.zoneState.inSantaEsperanca then
+        return
+    end
+
+    NF_UI.zoneState.inSantaEsperanca = inside
+
+    if inside then
+        NF_UI.showToast(
+            "Santa Esperança",
+            "Você entrou na cidade-refúgio. PvP bloqueado.",
+            "SISTEMA",
+            9000
+        )
+    else
+        NF_UI.showToast(
+            "Fora da proteção",
+            "A proteção de Santa Esperança termina aqui.",
+            "EVENTO",
+            9000
+        )
+    end
+end
+
 local function onCreatePlayer()
     NF_UI.ensure()
 
@@ -491,5 +593,6 @@ end
 
 Events.OnCreatePlayer.Add(onCreatePlayer)
 Events.OnTick.Add(NF_UI.processScheduledToasts)
+Events.OnTick.Add(NF_UI.processSantaEsperancaZone)
 Events.OnKeyPressed.Add(onKeyPressed)
 Events.OnServerCommand.Add(onServerCommand)
