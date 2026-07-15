@@ -129,3 +129,36 @@ Aprovado.
 
 Observação:
 A zona foi criada manualmente pelo painel admin do Project Zomboid. Futuramente, avaliar forma de tornar isso reproduzível por script/mod/config.
+
+## Validação — Zona PvE
+
+Data:
+2026-07-15
+
+Zonas Non-PVP criadas no servidor:
+
+### Santa Esperança — Oeste
+
+- X1: 7931
+- Y1: 11387
+- X2: 8161
+- Y2: 11779
+
+### Santa Esperança — Leste
+
+- X1: 8161
+- Y1: 11537
+- X2: 8437
+- Y2: 11779
+
+Resultado dos testes:
+
+- Player recebeu aviso de zona Non-PVP.
+- PvP foi bloqueado dentro de Santa Esperança.
+- PvP funcionou normalmente fora de Santa Esperança.
+
+Status:
+Aprovado.
+
+Observação:
+A zona foi criada manualmente pelo painel admin do Project Zomboid. Futuramente, avaliar forma de tornar isso reproduzível por script, mod ou configuração versionada.
